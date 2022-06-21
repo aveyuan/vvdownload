@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/kataras/iris/v12"
 )
 
 const DownloadFileDir = "download"
@@ -22,8 +22,8 @@ func NewBase() *Base {
 }
 
 //  ReJson 统一返回调度模型
-func (t *Base) ReJson(code int, msg string, data interface{}, err interface{}, c iris.Context) {
-	c.JSON(map[string]interface{}{
+func (t *Base) ReJson(code int, msg string, data interface{}, err interface{}, c *gin.Context) {
+	c.JSON(200, gin.H{
 		"code": code,
 		"data": data,
 		"msg":  msg,
@@ -32,27 +32,27 @@ func (t *Base) ReJson(code int, msg string, data interface{}, err interface{}, c
 }
 
 //  ReData 只对数据返回
-func (t *Base) ReData(code int, data interface{}, c iris.Context) {
+func (t *Base) ReData(code int, data interface{}, c *gin.Context) {
 	t.ReJson(200, "", data, nil, c)
 }
 
 // ReError 只对错误返回
-func (t *Base) ReError(code int, msg string, error interface{}, c iris.Context) {
+func (t *Base) ReError(code int, msg string, error interface{}, c *gin.Context) {
 	t.ReJson(code, msg, nil, error, c)
 }
 
 // ReOk 操作正确的数据
-func (t *Base) ReOk(code int, msg string, c iris.Context) {
+func (t *Base) ReOk(code int, msg string, c *gin.Context) {
 	t.ReJson(code, msg, nil, nil, c)
 }
 
 // Index 首页数据
-func (t *Base) Index(ctx iris.Context) {
-	ctx.View("index.html")
+func (t *Base) Index(ctx *gin.Context) {
+		ctx.HTML(http.StatusOK, "index.html", nil)
 }
 
 // GetFiles 获取所有数据
-func (t *Base) GetFiles(ctx iris.Context) {
+func (t *Base) GetFiles(ctx *gin.Context) {
 	all, err := new(File).GetFileAll()
 	if err != nil {
 		t.ReError(402, "数据获取失败", err, ctx)
@@ -63,11 +63,11 @@ func (t *Base) GetFiles(ctx iris.Context) {
 }
 
 // DeleteFile 删除一个文件
-func (t *Base) DeleteFile(ctx iris.Context) {
+func (t *Base) DeleteFile(ctx *gin.Context) {
 	var form struct {
 		ID uint `json:"id" form:"id" validate:"required"`
 	}
-	if err := ctx.ReadForm(&form); err != nil || form.ID == 0 {
+	if err := ctx.BindQuery(&form); err != nil || form.ID == 0 {
 		t.ReError(402, "参数错误", err, ctx)
 		return
 	}
@@ -101,14 +101,14 @@ func (t *Base) DeleteFile(ctx iris.Context) {
 }
 
 // DownLoadFile 下载一个文件
-func (t *Base) DownLoadFile(ctx iris.Context) {
+func (t *Base) DownLoadFile(ctx *gin.Context) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 	var form struct {
 		URL  string `json:"url" form:"url" validate:"required"`
 		Name string `json:"name" form:"name"  validate:"required"`
 	}
-	if err := ctx.ReadForm(&form); err != nil {
+	if err := ctx.BindQuery(&form); err != nil {
 		t.ReError(402, "参数错误", err, ctx)
 		return
 	}

@@ -2,33 +2,30 @@ package main
 
 import (
 	"flag"
+	"log"
 
-	"github.com/go-playground/validator"
-	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/middleware/recover"
+	"github.com/gin-gonic/gin"
 )
 
 var port string
 
 func init() {
+	gin.SetMode(gin.ReleaseMode)
 	flag.StringVar(&port, "p", "8080", "-p port")
 	flag.Parse()
 }
 
 func main() {
 	InitDB()
-	app := iris.New()
-	app.Use(recover.New())
-	app.Validator = validator.New()
-	view := iris.HTML("./views", ".html")
-	view.Reload(true)
-	app.RegisterView(view)
-	app.HandleDir("/download", iris.Dir("./download"))
-
+	r := gin.Default()
+	r.StaticFS("/download", gin.Dir("./download", false))
+	r.LoadHTMLGlob("views/*")
 	base := NewBase()
-	app.Get("/", base.Index)
-	app.Get("/downloadFile", base.DownLoadFile)
-	app.Get("/delete", base.DeleteFile)
-	app.Get("/list", base.GetFiles)
-	app.Listen(":" + port)
+	r.GET("/", base.Index)
+	r.GET("/downloadFile", base.DownLoadFile)
+	r.GET("/delete", base.DeleteFile)
+	r.GET("/list", base.GetFiles)
+
+	log.Print("程序启动成功，监听端口:", port)
+	r.Run(":" + port)
 }
