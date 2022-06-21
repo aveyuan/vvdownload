@@ -1,10 +1,19 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/go-playground/validator"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/recover"
 )
+
+var port string
+
+func init() {
+	flag.StringVar(&port, "p", "8080", "-p port")
+	flag.Parse()
+}
 
 func main() {
 	InitDB()
@@ -21,5 +30,5 @@ func main() {
 	app.Get("/downloadFile", base.DownLoadFile)
 	app.Get("/delete", base.DeleteFile)
 	app.Get("/list", base.GetFiles)
-	app.Listen(":8080")
+	app.Listen(":" + port)
 }
