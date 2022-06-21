@@ -65,9 +65,9 @@ func (t *Base) GetFiles(ctx iris.Context) {
 // DeleteFile 删除一个文件
 func (t *Base) DeleteFile(ctx iris.Context) {
 	var form struct {
-		ID uint `json:"id" validate:"required"`
+		ID uint `json:"id" form:"id" validate:"required"`
 	}
-	if err := ctx.ReadJSON(&form); err != nil || form.ID == 0 {
+	if err := ctx.ReadForm(&form); err != nil || form.ID == 0 {
 		t.ReError(402, "参数错误", err, ctx)
 		return
 	}
@@ -105,10 +105,10 @@ func (t *Base) DownLoadFile(ctx iris.Context) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 	var form struct {
-		URL  string `json:"url" validate:"required"`
-		Name string `json:"name" validate:"required"`
+		URL  string `json:"url" form:"url" validate:"required"`
+		Name string `json:"name" form:"name"  validate:"required"`
 	}
-	if err := ctx.ReadJSON(&form); err != nil {
+	if err := ctx.ReadForm(&form); err != nil {
 		t.ReError(402, "参数错误", err, ctx)
 		return
 	}
