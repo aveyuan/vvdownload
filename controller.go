@@ -133,7 +133,7 @@ func (t *Base) DownLoadFile(ctx iris.Context) {
 		t.ReError(500, "数据存储失败", err, ctx)
 		return
 	}
-	t.ReOk(200, path, ctx)
+	t.ReData(200, one, ctx)
 
 }
 
